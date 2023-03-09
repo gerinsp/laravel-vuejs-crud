@@ -28,7 +28,7 @@
                             </thead>
                             <tbody>
                                 <tr v-for="(data, index) in datas" :key="index">
-                                    <th scope="row">{{ index + 1 }}</th>
+                                    <th scope="row">{{ index + number }}</th>
                                     <td>
                                        <img :src="'storage/' + data.image" class="image">
                                     </td>
@@ -52,16 +52,20 @@
                         </table>
                         <nav aria-label="...">
                             <ul class="pagination">
-                                <li class="page-item disabled">
-                                <a class="page-link">Previous</a>
+                                <li v-if="currentPage === 1" class="page-item disabled">
+                                <button class="page-link" @click="prevPage">Previous</button>
                                 </li>
-                                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                                <li v-else class="page-item">
+                                <button class="page-link" @click="prevPage">Previous</button>
+                                </li>
                                 <li class="page-item active" aria-current="page">
-                                <a class="page-link" href="#">2</a>
+                                <a class="page-link" href="#">{{ currentPage }}</a>
                                 </li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                <a class="page-link" href="#">Next</a>
+                                <li v-if="currentPage === lastPage" class="page-item disabled">
+                                <button class="page-link" @click="nextPage">Next</button>
+                                </li>
+                                <li v-else class="page-item">
+                                <button class="page-link" @click="nextPage">Next</button>
                                 </li>
                             </ul>
                         </nav>
@@ -85,7 +89,10 @@
                 datas: [],
                 selectedData: null,
                 message: null,
-                postImage: ''
+                postImage: '',
+                currentPage: 1,
+                lastPage: null,
+                number: 1,
             };
         },
         mounted() {
@@ -102,10 +109,11 @@
                 this.showCreate = true;
             },
             getAllData() {
-                axios.get('/api/items')
+                axios.get(`api/items?page=${this.currentPage}`, )
                 .then(response => {
                     console.log(response.data)
-                    this.datas = response.data
+                    this.datas = response.data.data
+                    this.lastPage = response.data.last_page
                 })
                 .catch(err => {
                     console.error(err)
@@ -150,6 +158,20 @@
                 setTimeout(() => {
                     this.message = null;
                 }, 3000);
+            },
+            prevPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.number -= 2
+                    this.getAllData()
+                }
+            },
+            nextPage() {
+                if (this.currentPage < this.lastPage) {
+                    this.currentPage++;
+                    this.number += 2
+                    this.getAllData()
+                }
             }
         }
     }
