@@ -69,7 +69,8 @@ export default {
             .then((response) => {
                 console.log(response.data.data)
                 this.$emit('create', response.data);
-                this.datas.unshift(response.data.data);
+                this.$emit('getAllData')
+                this.datas.push(response.data.data);
                 this.data = null;
                 this.cancelCreate();
         }).catch((err) => {

@@ -6,7 +6,7 @@
                     {{ message }}
                 </div>
                 <div v-if="showCreate || showEdit">
-                    <create :datas="datas" v-if="showCreate" @cancelCreate="cancelCreate" @create="create"></create>
+                    <create :datas="datas" @getAllData="getAllData" v-if="showCreate" @cancelCreate="cancelCreate" @create="create"></create>
                     <edit v-if="showEdit" :datas="datas" :selectedData="selectedData" @cancelEdit="cancelEdit" @getAllData="getAllData" @updated="updated"></edit>
                 </div>
                 <div class="card mt-3">
@@ -50,22 +50,24 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <nav aria-label="...">
+                        <nav aria-label="..." v-if="total > 2">
                             <ul class="pagination">
                                 <li v-if="currentPage === 1" class="page-item disabled">
-                                <button class="page-link" @click="prevPage">Previous</button>
+                                    <button class="page-link" @click="prevPage">Previous</button>
                                 </li>
                                 <li v-else class="page-item">
-                                <button class="page-link" @click="prevPage">Previous</button>
+                                    <button class="page-link" @click="prevPage">Previous</button>
                                 </li>
-                                <li class="page-item active" aria-current="page">
-                                <a class="page-link" href="#">{{ currentPage }}</a>
+                                <li v-for="i in lastPage" :key="i" class="page-item" aria-current="page">
+                                    <button v-if="i === currentPage" 
+                                    @click="pageClick(i)" class="page-link active">{{ currentPage }}</button>
+                                    <button v-else @click="pageClick(i)" class="page-link">{{ i }}</button>
                                 </li>
                                 <li v-if="currentPage === lastPage" class="page-item disabled">
-                                <button class="page-link" @click="nextPage">Next</button>
+                                    <button class="page-link" @click="nextPage">Next</button>
                                 </li>
                                 <li v-else class="page-item">
-                                <button class="page-link" @click="nextPage">Next</button>
+                                    <button class="page-link" @click="nextPage">Next</button>
                                 </li>
                             </ul>
                         </nav>
@@ -93,6 +95,8 @@
                 currentPage: 1,
                 lastPage: null,
                 number: 1,
+                total: null,
+                perPage: null
             };
         },
         mounted() {
@@ -113,11 +117,14 @@
                 .then(response => {
                     console.log(response.data)
                     this.datas = response.data.data
+                    this.total = response.data.total
                     this.lastPage = response.data.last_page
+                    this.perPage = response.data.per_page
                 })
                 .catch(err => {
                     console.error(err)
                 });
+                this.$emit('getAllData')
             },
             startEdit(data) {
                 this.selectedData = data;
@@ -132,6 +139,8 @@
                 const id = event.target.elements.id.value;
                 axios.delete(`/api/items/${id}`)
                 .then(response => {
+                    this.currentPage = 1;
+                    this.number = 1;
                     this.getAllData();
                     this.message = response.data.message;
                     setTimeout(() => {
@@ -162,16 +171,25 @@
             prevPage() {
                 if (this.currentPage > 1) {
                     this.currentPage--;
-                    this.number -= 2
+                    this.number -= this.perPage
                     this.getAllData()
                 }
             },
             nextPage() {
                 if (this.currentPage < this.lastPage) {
                     this.currentPage++;
-                    this.number += 2
+                    this.number += this.perPage
                     this.getAllData()
                 }
+            },
+            pageClick(i) {
+                this.currentPage = i;
+                if (this.currentPage > 1) {
+                    this.number = this.currentPage * this.perPage - 1
+                } else {
+                    this.number = 1;
+                }
+                this.getAllData();
             }
         }
     }
