@@ -110,6 +110,8 @@ class ItemsController extends Controller
                 Storage::delete($item->image);
             }
             $validatedData = $request->validate([
+                'name' => 'required|min:3',
+                'type_id' => 'required',
                 'image' => 'image|file|max:1024'
             ]);
             $validatedData['image'] = $request->file('image')->store('post-images');

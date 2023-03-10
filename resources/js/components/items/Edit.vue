@@ -64,6 +64,8 @@
                 formData.append('type_id', this.editedData.type_id)
                 formData.append('image', this.editedData.image)
                 formData.append('_method', 'PUT')
+                console.log(formData.get('name'))
+                console.log(formData.get('type_id'))
                 axios.post(`/api/items/${this.selectedData.id}`, formData)
                     .then(response => {
                         console.log(response.data)
